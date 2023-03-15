@@ -168,6 +168,7 @@ module DryCrud
       # define an instance variable with the pluralized name of the
       # association.
       def has_many_field(attr, html_options = {})
+        html_options[:required] = false if entry[:attr].any?
         html_options[:multiple] = true
         add_css_class(html_options, 'multiselect')
         belongs_to_field(attr, html_options)
@@ -175,6 +176,7 @@ module DryCrud
       # rubocop:enable Naming/PredicateName
 
       def has_one_attached_field(attr, html_options = {})
+        html_options[:required] = false if entry[:attr].present?
         add_css_class(html_options, 'form-control')
         file_field(attr, html_options)
       end
@@ -221,11 +223,14 @@ module DryCrud
         attachment = attachment.is_a?(ActiveStorage::Attached::One) ? attachment : attachment.first
 
         if attachment.previewable?
-          image_tag attachment.preview(resize_to_limit: [125, 125]).processed.url, class: 'img-thumbnail'
+          url = attachment.preview(resize_to_limit: [125, 125]).processed.url
+          link_to image_tag(url, class: 'img-thumbnail'), url_for(attachment), target: '_blank'
         elsif attachment.variable?
-          image_tag attachment.variant(resize_to_limit: [75, 75]), class: 'img-thumbnail'
+          url = attachment.variant(resize_to_limit: [75, 75]).processed.url
+          link_to image_tag(url, class: 'img-thumbnail'), url_for(attachment), target: '_blank'
         elsif attachment.representable?
-          image_tag attachment.representation(resize_to_limit: [75, 75]).processed.url, class: 'img-thumbnail'
+          url = attachment.representation(resize_to_limit: [75, 75]).processed.url
+          link_to image_tag(url, class: 'img-thumbnail'), url_for(attachment), target: '_blank'
         else
           link_to "View Here", url_for: attachment, target: '_blank'
         end
